@@ -219,7 +219,9 @@ class TestAPNs(unittest.TestCase):
             start = time.time()
             yield
             end = time.time()
-            self.assertAlmostEqual(expected, end - start, delta=delta)
+            took = end - start
+            self.assertTrue(expected > took - delta / 2)
+            self.assertTrue(expected < took + delta / 2)
 
         socket1, socket2 = socket.socketpair()
         socket1.setblocking(False)
