@@ -22,6 +22,11 @@ token_hex = 'b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b87'
 payload = Payload(alert="Hello World!", sound="default", badge=1)
 apns.gateway_server.send_notification(token_hex, payload)
 
+# Send an iOS 10 compatible notification
+token_hex = 'b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b87'
+payload = Payload(alert="Hello World!", sound="default", badge=1, mutable_content=True)
+apns.gateway_server.send_notification(token_hex, payload)
+
 # Send multiple notifications in a single transmission
 frame = Frame()
 identifier = 1
@@ -81,7 +86,7 @@ apns_enhanced.gateway_server.register_response_listener(response_listener)
 ```
 
 Error response worker will be auto-close after 30 secs idle of connection operations.
-If you want disable APNS connection and error-responses handlder immediately, force_close it.
+If you want disable APNS connection and error-responses handler immediately, force_close it.
 ```python
 apns_enhanced.gateway_server.force_close()
 ```

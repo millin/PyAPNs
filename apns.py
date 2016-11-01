@@ -42,10 +42,7 @@ except ImportError:
 
 from _ssl import SSL_ERROR_WANT_READ, SSL_ERROR_WANT_WRITE
 
-try:
-    import json
-except ImportError:
-    import simplejson as json
+import json
 
 _logger = logging.getLogger(__name__)
 
@@ -205,9 +202,6 @@ class APNsConnection(object):
         self.enhanced = enhanced
         self.connection_alive = False
 
-    def __del__(self):
-        self._disconnect();
-
     def _connect(self):
         # Establish an SSL connection
         _logger.debug("%s APNS connection establishing..." % self.__class__.__name__)
@@ -322,7 +316,8 @@ class PayloadTooLargeError(Exception):
 
 class Payload(object):
     """A class representing an APNs message payload"""
-    def __init__(self, alert=None, badge=None, sound=None, category=None, custom={}, content_available=False):
+    def __init__(self, alert=None, badge=None, sound=None, category=None, custom={}, content_available=False,
+                 mutable_content=False):
         super(Payload, self).__init__()
         self.alert = alert
         self.badge = badge
@@ -330,6 +325,7 @@ class Payload(object):
         self.category = category
         self.custom = custom
         self.content_available = content_available
+        self.mutable_content = mutable_content
         self._check_size()
 
     def dict(self):
@@ -351,6 +347,9 @@ class Payload(object):
 
         if self.content_available:
             d.update({'content-available': 1})
+
+        if self.mutable_content:
+            d.update({'mutable-content': 1})
 
         d = { 'aps': d }
         d.update(self.custom)
