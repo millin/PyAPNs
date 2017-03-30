@@ -556,7 +556,8 @@ class GatewayConnection(APNsConnection):
             _logger.warning("error response handler worker is not started after %s secs" % TIMEOUT_SEC)
 
     def send_notification_multiple(self, frame):
-        self._make_sure_error_response_handler_worker_alive()
+        if self.enhanced:
+            self._make_sure_error_response_handler_worker_alive()
         self._sent_notifications += frame.get_notifications(self)
         return self.write(frame.get_frame())
 
