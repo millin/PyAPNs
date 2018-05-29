@@ -188,9 +188,19 @@ class TestAPNs(unittest.TestCase):
         frame = Frame()
         frame.add_item(token_hex, payload, identifier, expiry, priority)
 
-        f1 = bytearray(b'\x02\x00\x00\x00t\x01\x00 \xb5\xbb\x9d\x80\x14\xa0\xf9\xb1\xd6\x1e!\xe7\x96\xd7\x8d\xcc\xdf\x13R\xf2<\xd3(\x12\xf4\x85\x0b\x87\x8a\xe4\x94L\x02\x00<{"aps":{"sound":"default","badge":4,"alert":"Hello World!"}}\x03\x00\x04\x00\x00\x00\x01\x04\x00\x04\x00\x00\x0e\x10\x05\x00\x01\n')
-        f2 = bytearray(b'\x02\x00\x00\x00t\x01\x00 \xb5\xbb\x9d\x80\x14\xa0\xf9\xb1\xd6\x1e!\xe7\x96\xd7\x8d\xcc\xdf\x13R\xf2<\xd3(\x12\xf4\x85\x0b\x87\x8a\xe4\x94L\x02\x00<{"aps":{"sound":"default","alert":"Hello World!","badge":4}}\x03\x00\x04\x00\x00\x00\x01\x04\x00\x04\x00\x00\x0e\x10\x05\x00\x01\n')
-        self.assertTrue(f1 == frame.get_frame() or f2 == frame.get_frame())
+        frame_bytes = frame.get_frame()
+
+        prefix = frame_bytes[:43]
+        data = frame_bytes[43: -18]
+        postfix = frame_bytes[-18:]
+
+        self.assertEqual(prefix, b'\x02\x00\x00\x00t\x01\x00 \xb5\xbb\x9d\x80\x14\xa0\xf9\xb1\xd6\x1e!\xe7\x96\xd7\x8d\xcc\xdf\x13R\xf2<\xd3(\x12\xf4\x85\x0b\x87\x8a\xe4\x94L\x02\x00<')
+        self.assertEqual(
+            json.loads(data.decode()),
+            json.loads('{"aps":{"sound":"default","badge":4,'
+                       '"alert":"Hello World!"}}')
+        )
+        self.assertEqual(postfix, b'\x03\x00\x04\x00\x00\x00\x01\x04\x00\x04\x00\x00\x0e\x10\x05\x00\x01\n')
 
     def testPayloadTooLargeError(self):
         # The maximum size of the JSON payload is MAX_PAYLOAD_LENGTH 
