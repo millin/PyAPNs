@@ -268,10 +268,21 @@ class APNsConnection(object):
 
 
 class PayloadAlert(object):
-    def __init__(self, body=None, title = None, subtitle = None, action_loc_key=None, loc_key=None,
-                 loc_args=None, launch_image=None):
-        super(PayloadAlert, self).__init__()
-        
+    """
+    Payload for APNS alert.
+    https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/PayloadKeyReference.html
+    """
+    def __init__(self,
+                 body=None,
+                 title=None,
+                 subtitle=None,
+                 action_loc_key=None,
+                 loc_key=None,
+                 loc_args=None,
+                 launch_image=None,
+                 title_loc_key=None,
+                 title_loc_args=None):
+
         self.body = body
         self.title = title
         self.subtitle = subtitle
@@ -279,25 +290,39 @@ class PayloadAlert(object):
         self.loc_key = loc_key
         self.loc_args = loc_args
         self.launch_image = launch_image
+        self.title_loc_key = title_loc_key
+        self.title_loc_args = title_loc_args
+
+        self._dict = {
+            'body': self.body,
+            'title': self.title,
+            'subtitle': self.subtitle,
+            'action-loc-key': self.action_loc_key,
+            'loc-key': self.loc_key,
+            'loc-args': self.loc_args,
+            'launch-image': self.launch_image,
+            'title-loc-key': self.title_loc_key,
+            'title-loc-args': self.title_loc_args
+        }
 
     def dict(self):
-        d = {}
-        
-        if self.body:
-            d['body'] = self.body
-        if self.title:
-            d['title'] = self.title
-        if self.subtitle:
-            d['subtitle'] = self.subtitle
-        if self.action_loc_key:
-            d['action-loc-key'] = self.action_loc_key
-        if self.loc_key:
-            d['loc-key'] = self.loc_key
-        if self.loc_args:
-            d['loc-args'] = self.loc_args
-        if self.launch_image:
-            d['launch-image'] = self.launch_image
-        return d
+        cleared = {
+            key: value
+            for (key, value)
+            in self._dict.items()
+            if value is not None
+        }
+        return cleared
+
+    def __eq__(self, other):
+        return self.dict() == other.dict()
+
+    def __ne__(self, other):
+        return self.dict() != other.dict()
+
+    def __repr__(self):
+        return 'PayloadAlert(**{})'.format(self.dict())
+
 
 class PayloadTooLargeError(Exception):
     def __init__(self, payload_size):
