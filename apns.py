@@ -267,7 +267,7 @@ class APNsConnection(object):
             return self._connection().write(string)
 
 
-class PayloadAlert(object):
+class PayloadAlert(dict):
     """
     Payload for APNS alert.
     https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/PayloadKeyReference.html
@@ -282,46 +282,28 @@ class PayloadAlert(object):
                  launch_image=None,
                  title_loc_key=None,
                  title_loc_args=None):
-
-        self.body = body
-        self.title = title
-        self.subtitle = subtitle
-        self.action_loc_key = action_loc_key
-        self.loc_key = loc_key
-        self.loc_args = loc_args
-        self.launch_image = launch_image
-        self.title_loc_key = title_loc_key
-        self.title_loc_args = title_loc_args
-
-        self._dict = {
-            'body': self.body,
-            'title': self.title,
-            'subtitle': self.subtitle,
-            'action-loc-key': self.action_loc_key,
-            'loc-key': self.loc_key,
-            'loc-args': self.loc_args,
-            'launch-image': self.launch_image,
-            'title-loc-key': self.title_loc_key,
-            'title-loc-args': self.title_loc_args
+        dict_ = {
+            'body': body,
+            'title': title,
+            'subtitle': subtitle,
+            'action-loc-key': action_loc_key,
+            'loc-key': loc_key,
+            'loc-args': loc_args,
+            'launch-image': launch_image,
+            'title-loc-key': title_loc_key,
+            'title-loc-args': title_loc_args
         }
+
+        # init dictionary with non None items
+        super(PayloadAlert, self).__init__(
+            {
+                key: value for (key, value)
+                in dict_.items() if value is not None
+            }
+        )
 
     def dict(self):
-        cleared = {
-            key: value
-            for (key, value)
-            in self._dict.items()
-            if value is not None
-        }
-        return cleared
-
-    def __eq__(self, other):
-        return self.dict() == other.dict()
-
-    def __ne__(self, other):
-        return self.dict() != other.dict()
-
-    def __repr__(self):
-        return 'PayloadAlert(**{})'.format(self.dict())
+        return self
 
 
 class PayloadTooLargeError(Exception):

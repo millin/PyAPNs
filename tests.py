@@ -5,6 +5,7 @@ from binascii import a2b_hex
 from random import random
 
 import hashlib
+import json
 import os
 import time
 import unittest
@@ -130,6 +131,11 @@ class TestAPNs(unittest.TestCase):
         self.assertTrue('body' not in d)
         self.assertEqual(d['loc-key'], 'wibble')
 
+    def testPayloadAlertJSONSerializable(self):
+        pa = PayloadAlert('foo', action_loc_key='bar', loc_key='wibble',
+                          loc_args=['king', 'kong'], launch_image='wobble')
+        self.assertEqual(pa, json.loads(json.dumps(pa)))
+
     def testPayload(self):
         # Payload with just alert
         p = Payload(alert=PayloadAlert('foo'))
@@ -218,6 +224,7 @@ class TestAPNs(unittest.TestCase):
         Payload(u'\u0100' * int(max_raw_payload_bytes / 2))
         self.assertRaises(PayloadTooLargeError, Payload,
             u'\u0100' * (int(max_raw_payload_bytes / 2) + 1))
+
 
 if __name__ == '__main__':
     unittest.main()
