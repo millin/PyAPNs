@@ -1,25 +1,24 @@
 #!/usr/bin/env python
 # coding: utf-8
+import hashlib
+import json
+import socket
+import time
+import unittest
+from binascii import a2b_hex
 from contextlib import contextmanager
+from random import random
 
 from apns import *
 from apns import _wait_for_socket
-from binascii import a2b_hex
-from random import random
-import socket
 
-import hashlib
-import json
-import os
-import time
-import unittest
-
-TEST_CERTIFICATE = "certificate.pem" # replace with path to test certificate
+TEST_CERTIFICATE = "certificate.pem"  # replace with path to test certificate
 
 NUM_MOCK_TOKENS = 10
 mock_tokens = []
 for i in range(0, NUM_MOCK_TOKENS):
     mock_tokens.append(bytes(hashlib.sha256(("%.12f" % random()).encode("utf-8")).hexdigest().encode("utf-8")))
+
 
 def mock_chunks_generator():
     BUF_SIZE = 64
@@ -27,8 +26,8 @@ def mock_chunks_generator():
     data = b''
 
     for t in mock_tokens:
-        token_bin       = a2b_hex(t)
-        token_length    = len(token_bin)
+        token_bin = a2b_hex(t)
+        token_length = len(token_bin)
 
         data += APNs.packed_uint_big_endian(int(time.time()))
         data += APNs.packed_ushort_big_endian(token_length)
@@ -56,17 +55,17 @@ class TestAPNs(unittest.TestCase):
 
         self.assertEqual(apns_test.gateway_server.port, 2195)
         self.assertEqual(apns_test.gateway_server.server,
-            'gateway.sandbox.push.apple.com')
+                         'gateway.sandbox.push.apple.com')
         self.assertEqual(apns_test.feedback_server.port, 2196)
         self.assertEqual(apns_test.feedback_server.server,
-            'feedback.sandbox.push.apple.com')
+                         'feedback.sandbox.push.apple.com')
 
         self.assertEqual(apns_prod.gateway_server.port, 2195)
         self.assertEqual(apns_prod.gateway_server.server,
-            'gateway.push.apple.com')
+                         'gateway.push.apple.com')
         self.assertEqual(apns_prod.feedback_server.port, 2196)
         self.assertEqual(apns_prod.feedback_server.server,
-            'feedback.push.apple.com')
+                         'feedback.push.apple.com')
 
     def testGatewayServer(self):
         pem_file = TEST_CERTIFICATE
@@ -77,19 +76,19 @@ class TestAPNs(unittest.TestCase):
         self.assertEqual(gateway_server.key_file, apns.key_file)
 
         token_hex = 'b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c'
-        payload   = Payload(
-            alert = "Hello World!",
-            sound = "default",
-            badge = 4
+        payload = Payload(
+            alert="Hello World!",
+            sound="default",
+            badge=4
         )
         notification = gateway_server._get_notification(token_hex, payload)
 
         expected_length = (
-            1                       # leading null byte
-            + 2                     # length of token as a packed short
-            + len(token_hex) / 2    # length of token as binary string
-            + 2                     # length of payload as a packed short
-            + len(payload.json())   # length of JSON-formatted payload
+                1  # leading null byte
+                + 2  # length of token as a packed short
+                + len(token_hex) / 2  # length of token as binary string
+                + 2  # length of payload as a packed short
+                + len(payload.json())  # length of JSON-formatted payload
         )
 
         self.assertEqual(len(notification), expected_length)
@@ -122,12 +121,12 @@ class TestAPNs(unittest.TestCase):
         self.assertFalse('launch-image' in d)
 
         pa = PayloadAlert('foo', action_loc_key='bar', loc_key='wibble',
-            loc_args=['king','kong'], launch_image='wobble')
+                          loc_args=['king', 'kong'], launch_image='wobble')
         d = pa.dict()
         self.assertEqual(d['body'], 'foo')
         self.assertEqual(d['action-loc-key'], 'bar')
         self.assertEqual(d['loc-key'], 'wibble')
-        self.assertEqual(d['loc-args'], ['king','kong'])
+        self.assertEqual(d['loc-args'], ['king', 'kong'])
         self.assertEqual(d['launch-image'], 'wobble')
 
         pa = PayloadAlert(loc_key='wibble')
@@ -188,13 +187,13 @@ class TestAPNs(unittest.TestCase):
         identifier = 1
         expiry = 3600
         token_hex = 'b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c'
-        payload   = Payload(
-            alert = "Hello World!",
-            sound = "default",
-            badge = 4
+        payload = Payload(
+            alert="Hello World!",
+            sound="default",
+            badge=4
         )
         priority = 10
- 
+
         frame = Frame()
         frame.add_item(token_hex, payload, identifier, expiry, priority)
 
@@ -204,7 +203,8 @@ class TestAPNs(unittest.TestCase):
         data = frame_bytes[43: -18]
         postfix = frame_bytes[-18:]
 
-        self.assertEqual(prefix, b'\x02\x00\x00\x00t\x01\x00 \xb5\xbb\x9d\x80\x14\xa0\xf9\xb1\xd6\x1e!\xe7\x96\xd7\x8d\xcc\xdf\x13R\xf2<\xd3(\x12\xf4\x85\x0b\x87\x8a\xe4\x94L\x02\x00<')
+        self.assertEqual(prefix,
+                         b'\x02\x00\x00\x00t\x01\x00 \xb5\xbb\x9d\x80\x14\xa0\xf9\xb1\xd6\x1e!\xe7\x96\xd7\x8d\xcc\xdf\x13R\xf2<\xd3(\x12\xf4\x85\x0b\x87\x8a\xe4\x94L\x02\x00<')
         self.assertEqual(
             json.loads(data.decode()),
             json.loads('{"aps":{"sound":"default","badge":4,'
@@ -221,13 +221,13 @@ class TestAPNs(unittest.TestCase):
 
         # Test ascii characters payload
         Payload('.' * max_raw_payload_bytes)
-        self.assertRaises(PayloadTooLargeError, Payload, 
-            '.' * (max_raw_payload_bytes + 1))
+        self.assertRaises(PayloadTooLargeError, Payload,
+                          '.' * (max_raw_payload_bytes + 1))
 
         # Test unicode 2-byte characters payload
         Payload(u'\u0100' * int(max_raw_payload_bytes / 2))
         self.assertRaises(PayloadTooLargeError, Payload,
-            u'\u0100' * (int(max_raw_payload_bytes / 2) + 1))
+                          u'\u0100' * (int(max_raw_payload_bytes / 2) + 1))
 
     def testWaitForSocket(self):
         @contextmanager
@@ -279,6 +279,7 @@ class TestAPNs(unittest.TestCase):
         self.assertTrue(result)
 
         socket1.close()
+
 
 if __name__ == '__main__':
     unittest.main()
